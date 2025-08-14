@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from . import db, bcrypt
 from .models import User
+from .req import require_json
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -27,7 +28,10 @@ def register():
 
 @auth_bp.post("/login")
 def login():
-    data = request.get_json() or {}
+    data, err = require_json()
+    if err: 
+        return err
+
     email = (data.get("email") or "").strip().lower()
     password = data.get("password") or ""
 

@@ -1,9 +1,8 @@
-from datetime import datetime
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from . import db
 from .models import ActionItem, Meeting
-from .req import require_json                              
+from .req import require_json
 from .validators import parse_iso_date, ensure_nonempty, ensure_status  
 
 items_bp = Blueprint("action_items", __name__, url_prefix="/action-items")
@@ -27,10 +26,10 @@ def list_my_items():
 
     if due_before:
         try:
-            dt = datetime.fromisoformat(due_before).date()
+            dt = parse_iso_date(due_before)
             query = query.filter(ActionItem.due_date != None, ActionItem.due_date <= dt)
-        except Exception:
-            return jsonify({"error": "due_before must be ISO date YYYY-MM-DD"}), 400
+        except ValueError as ex:
+            return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     query = query.order_by(ActionItem.due_date.asc().nulls_last(), ActionItem.id.desc())
     page_data = _paginate(query)
@@ -67,7 +66,6 @@ def create_item():
     except ValueError as ex:
         return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
-    # Ensure meeting belongs to current user
     meeting = Meeting.query.filter_by(id=meeting_id, user_id=uid).first()
     if not meeting:
         return jsonify({"error": "NotFound", "message": "meeting not found"}), 404  
@@ -131,7 +129,7 @@ def update_item(item_id):
             return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     if "assignee" in data:
-        it.assignee = data["assignee"]
+        it.assignee = data.get("assignee")
 
     db.session.commit()
     return jsonify({"message": "updated"}), 200
