@@ -29,8 +29,10 @@ def create_app():
     from app import routes, models
     from app.auth import auth_bp
     from app.meetings import meetings_bp
+    from app.action_items import items_bp
     app.register_blueprint(routes.bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(meetings_bp)
+    app.register_blueprint(items_bp)
 
     return app
