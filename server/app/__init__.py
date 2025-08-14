@@ -4,6 +4,7 @@ from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_cors import CORS
 import os
 
 db = SQLAlchemy()
@@ -16,6 +17,8 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('app.config.Config')
 
+    CORS(app, supports_credentials=True)
+
     db.init_app(app)
     ma.init_app(app)
     bcrypt.init_app(app)
@@ -25,7 +28,9 @@ def create_app():
 
     from app import routes, models
     from app.auth import auth_bp
+    from app.meetings import meetings_bp
     app.register_blueprint(routes.bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(meetings_bp)
 
     return app
