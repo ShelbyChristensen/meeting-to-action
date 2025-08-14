@@ -9,6 +9,7 @@ db = SQLAlchemy()
 ma = Marshmallow()
 bcrypt = Bcrypt()
 jwt = JWTManager()
+migrate = Migrate()
 
 def create_app():
     app = Flask(__name__)
@@ -18,6 +19,7 @@ def create_app():
     ma.init_app(app)
     bcrypt.init_app(app)
     jwt.init_app(app)
+    migrate.init_app(app, db)
 
     from app import routes
     app.register_blueprint(routes.bp)
