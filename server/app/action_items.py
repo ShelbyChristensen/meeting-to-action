@@ -3,6 +3,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from . import db
 from .models import ActionItem, Meeting
+from .req import require_json                              
+from .validators import parse_iso_date, ensure_nonempty, ensure_status  
 
 items_bp = Blueprint("action_items", __name__, url_prefix="/action-items")
 
@@ -53,30 +55,42 @@ def list_my_items():
 @jwt_required()
 def create_item():
     uid = int(get_jwt_identity())
-    data = request.get_json() or {}
-    title = (data.get("title") or "").strip()
-    meeting_id = data.get("meeting_id")
+    data, err = require_json()                
+    if err:
+        return err
 
-    if not title or not meeting_id:
-        return jsonify({"error": "title and meeting_id are required"}), 400
+    try:
+        title = ensure_nonempty(data.get("title"), "title")
+        meeting_id = data.get("meeting_id")
+        if not meeting_id:
+            raise ValueError("meeting_id is required")
+    except ValueError as ex:
+        return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
+    # Ensure meeting belongs to current user
     meeting = Meeting.query.filter_by(id=meeting_id, user_id=uid).first()
     if not meeting:
-        return jsonify({"error": "meeting not found"}), 404
+        return jsonify({"error": "NotFound", "message": "meeting not found"}), 404  
 
     due_date = None
     if data.get("due_date"):
         try:
-            due_date = datetime.fromisoformat(data["due_date"]).date()
-        except Exception:
-            return jsonify({"error": "due_date must be ISO date YYYY-MM-DD"}), 400
+            due_date = parse_iso_date(data["due_date"])
+        except ValueError as ex:
+            return jsonify({"error": "ValidationError", "message": str(ex)}), 400
+
+    status_val = (data.get("status") or "open")
+    try:
+        status_val = ensure_status(status_val)
+    except ValueError as ex:
+        return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     item = ActionItem(
         meeting_id=meeting_id,
         user_id=uid,
         title=title,
         due_date=due_date,
-        status=(data.get("status") or "open"),
+        status=status_val,
         assignee=data.get("assignee"),
     )
     db.session.add(item)
@@ -89,29 +103,32 @@ def update_item(item_id):
     uid = int(get_jwt_identity())
     it = ActionItem.query.filter_by(id=item_id, user_id=uid).first()
     if not it:
-        return jsonify({"error": "not found"}), 404
+        return jsonify({"error": "NotFound", "message": "not found"}), 404 
 
-    data = request.get_json() or {}
+    data, err = require_json()      
+    if err:
+        return err
 
     if "title" in data:
-        t = (data.get("title") or "").strip()
-        if not t:
-            return jsonify({"error": "title cannot be empty"}), 400
-        it.title = t
+        try:
+            it.title = ensure_nonempty(data.get("title"), "title")
+        except ValueError as ex:
+            return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     if "due_date" in data:
         if data["due_date"] is None:
             it.due_date = None
         else:
             try:
-                it.due_date = datetime.fromisoformat(data["due_date"]).date()
-            except Exception:
-                return jsonify({"error": "due_date must be ISO date YYYY-MM-DD"}), 400
+                it.due_date = parse_iso_date(data["due_date"])
+            except ValueError as ex:
+                return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     if "status" in data:
-        if data["status"] not in {"open", "done"}:
-            return jsonify({"error": "status must be 'open' or 'done'"}), 400
-        it.status = data["status"]
+        try:
+            it.status = ensure_status(data["status"])
+        except ValueError as ex:
+            return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     if "assignee" in data:
         it.assignee = data["assignee"]
@@ -125,7 +142,7 @@ def delete_item(item_id):
     uid = int(get_jwt_identity())
     it = ActionItem.query.filter_by(id=item_id, user_id=uid).first()
     if not it:
-        return jsonify({"error": "not found"}), 404
+        return jsonify({"error": "NotFound", "message": "not found"}), 404 
     db.session.delete(it)
     db.session.commit()
     return jsonify({"message": "deleted"}), 204

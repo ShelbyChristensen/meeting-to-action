@@ -4,7 +4,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import or_
 from . import db
 from .models import Meeting
-
+from .req import require_json
+from .validators import parse_iso_date, ensure_nonempty  
 
 meetings_bp = Blueprint("meetings", __name__, url_prefix="/meetings")
 
@@ -47,17 +48,15 @@ def list_meetings():
 @jwt_required()
 def create_meeting():
     uid = int(get_jwt_identity())
-    data = request.get_json() or {}
-    title = (data.get("title") or "").strip()
-    date_str = (data.get("date") or "").strip()
-
-    if not title or not date_str:
-        return jsonify({"error": "title and date are required"}), 400
+    data, err = require_json()                 
+    if err:
+        return err
 
     try:
-        date_val = datetime.fromisoformat(date_str).date()
-    except Exception:
-        return jsonify({"error": "date must be ISO format YYYY-MM-DD"}), 400
+        title = ensure_nonempty(data.get("title"), "title")
+        date_val = parse_iso_date(ensure_nonempty(data.get("date"), "date"))
+    except ValueError as ex:
+        return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     meeting = Meeting(
         user_id=uid,
@@ -76,7 +75,7 @@ def get_meeting(meeting_id):
     uid = int(get_jwt_identity())
     m = Meeting.query.filter_by(id=meeting_id, user_id=uid).first()
     if not m:
-        return jsonify({"error": "not found"}), 404
+        return jsonify({"error": "NotFound", "message": "not found"}), 404 
     return jsonify({
         "id": m.id,
         "title": m.title,
@@ -92,20 +91,23 @@ def update_meeting(meeting_id):
     uid = int(get_jwt_identity())
     m = Meeting.query.filter_by(id=meeting_id, user_id=uid).first()
     if not m:
-        return jsonify({"error": "not found"}), 404
-    data = request.get_json() or {}
+        return jsonify({"error": "NotFound", "message": "not found"}), 404  
+
+    data, err = require_json()            
+    if err:
+        return err
 
     if "title" in data:
-        title = (data.get("title") or "").strip()
-        if not title:
-            return jsonify({"error": "title cannot be empty"}), 400
-        m.title = title
+        try:
+            m.title = ensure_nonempty(data.get("title"), "title")
+        except ValueError as ex:
+            return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     if "date" in data:
         try:
-            m.date = datetime.fromisoformat(data["date"]).date()
-        except Exception:
-            return jsonify({"error": "date must be ISO format YYYY-MM-DD"}), 400
+            m.date = parse_iso_date(ensure_nonempty(data.get("date"), "date"))
+        except ValueError as ex:
+            return jsonify({"error": "ValidationError", "message": str(ex)}), 400
 
     if "attendees" in data:
         m.attendees = data.get("attendees")
@@ -122,7 +124,7 @@ def delete_meeting(meeting_id):
     uid = int(get_jwt_identity())
     m = Meeting.query.filter_by(id=meeting_id, user_id=uid).first()
     if not m:
-        return jsonify({"error": "not found"}), 404
+        return jsonify({"error": "NotFound", "message": "not found"}), 404 
     db.session.delete(m)
     db.session.commit()
     return jsonify({"message": "deleted"}), 204
