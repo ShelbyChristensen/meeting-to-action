@@ -5,6 +5,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_cors import CORS
+from .errors import register_error_handlers
 import os
 
 db = SQLAlchemy()
@@ -34,5 +35,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(meetings_bp)
     app.register_blueprint(items_bp)
+
+    register_error_handlers(app)
 
     return app
