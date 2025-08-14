@@ -1,0 +1,13 @@
+# Node
+client/node_modules/
+client/.env
+
+# Python
+server/venv/
+server/.env
+__pycache__/
+*.pyc
+
+# OS / Editor
+.DS_Store
+*.log
