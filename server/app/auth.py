@@ -22,7 +22,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
-    token = create_access_token(identity=user.id)
+    token = create_access_token(identity=str(user.id))
     return jsonify({"access_token": token}), 201
 
 @auth_bp.post("/login")
@@ -41,6 +41,6 @@ def login():
 @auth_bp.get("/me")
 @jwt_required()
 def me():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     user = User.query.get_or_404(uid)
     return jsonify({"id": user.id, "email": user.email}), 200
