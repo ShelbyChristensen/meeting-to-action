@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import { Link } from 'react-router-dom'
+import { errMsg } from '../lib/errors'
+
 
 export default function Meetings() {
     const [items, setItems] = useState([])
@@ -9,19 +11,27 @@ export default function Meetings() {
     const [totalPages, setTotalPages] = useState(1)
 
     const load = async (p = 1, query = '') => {
-        const { data } = await api.get('/meetings', { params: { page: p, per_page: 10, q: query } })
-        setItems(data.items); setPage(data.page); setTotalPages(data.pages)
+        try {
+            const { data } = await api.get('/meetings', { params: { page: p, per_page: 10, q: query } })
+            setItems(data.items); setPage(data.page); setTotalPages(data.pages)
+        } catch (e) {
+            alert(errMsg(e))
+        }
     }
-
-    useEffect(() => { load(1, '') }, [])
 
     const create = async (e) => {
         e.preventDefault()
-        const title = prompt('Meeting title?'); if (!title) return
-        const date = prompt('Date (YYYY-MM-DD)?'); if (!date) return
-        await api.post('/meetings', { title, date })
-        load(page, q)
+        try {
+            const title = prompt('Meeting title?'); if (!title) return
+            const date = prompt('Date (YYYY-MM-DD)?'); if (!date) return
+            await api.post('/meetings', { title, date })
+            load(page, q)
+        } catch (e) {
+            alert(errMsg(e))
+        }
     }
+
+
 
     return (
         <div style={{ maxWidth: 800, margin: '20px auto' }}>
@@ -42,13 +52,18 @@ export default function Meetings() {
                         <button
                             onClick={async () => {
                                 if (!confirm('Delete this meeting?')) return
-                                await api.delete(`/meetings/${m.id}`)
-                                load(1, q)  // reload list after delete
+                                try {
+                                    await api.delete(`/meetings/${m.id}`)
+                                    load(1, q)
+                                } catch (e) {
+                                    alert(errMsg(e))
+                                }
                             }}
                             style={{ color: 'red' }}
                         >
                             Delete
                         </button>
+
                     </li>
                 ))}
 

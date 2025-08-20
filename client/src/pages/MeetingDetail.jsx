@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import api from '../lib/api'
+import { errMsg } from '../lib/errors'
+
 
 export default function MeetingDetail() {
   const { id } = useParams()
@@ -8,25 +10,36 @@ export default function MeetingDetail() {
   const [items, setItems] = useState([])
 
   const load = async () => {
+  try {
     const m = await api.get(`/meetings/${id}`)
     setMeeting(m.data)
-    const ai = await api.get('/action-items', { params: { } })
+    const ai = await api.get('/action-items', { params: {} })
     setItems(ai.data.items.filter(x => x.meeting_id === Number(id)))
+  } catch (e) {
+    alert(errMsg(e))
   }
+}
 
-  useEffect(() => { load() }, [id])
-
-  const addItem = async () => {
-    const title = prompt('Action item title?'); if (!title) return
-    const due = prompt('Due date (YYYY-MM-DD) or blank'); 
+const addItem = async () => {
+  const title = prompt('Action item title?'); if (!title) return
+  const due = prompt('Due date (YYYY-MM-DD) or blank')
+  try {
     await api.post('/action-items', { meeting_id: Number(id), title, due_date: due || null })
     load()
+  } catch (e) {
+    alert(errMsg(e))
   }
+}
 
-  const toggle = async (item) => {
+const toggle = async (item) => {
+  try {
     await api.patch(`/action-items/${item.id}`, { status: item.status === 'open' ? 'done' : 'open' })
     load()
+  } catch (e) {
+    alert(errMsg(e))
   }
+}
+
 
   if (!meeting) return <div className="p-6">Loading…</div>
 

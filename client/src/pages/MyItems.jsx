@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import api from '../lib/api'
+import { errMsg } from '../lib/errors'
+
 
 export default function MyItems() {
   const [items, setItems] = useState([])
@@ -7,12 +9,17 @@ export default function MyItems() {
   const [dueBefore, setDueBefore] = useState('')
 
   const load = async () => {
+  try {
     const params = {}
     if (status) params.status = status
     if (dueBefore) params.due_before = dueBefore
     const { data } = await api.get('/action-items', { params })
     setItems(data.items)
+  } catch (e) {
+    alert(errMsg(e))
   }
+}
+
 
   useEffect(() => { load() }, [])
 

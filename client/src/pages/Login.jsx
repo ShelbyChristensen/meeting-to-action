@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { errMsg } from '../lib/errors'
+
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -10,15 +12,17 @@ export default function Login() {
   const nav = useNavigate()
 
   const onSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    try {
-      await login(email, password)
-      nav('/meetings')
-    } catch (e) {
-      setError('Invalid credentials')
-    }
+  e.preventDefault()
+  setError('')
+  try {
+    await login(email, password)
+    nav('/meetings')
+  } catch (e) {
+    setError(errMsg(e))
+    alert(errMsg(e))
   }
+}
+
 
   return (
     <div style={{maxWidth:400, margin:'40px auto'}}>
