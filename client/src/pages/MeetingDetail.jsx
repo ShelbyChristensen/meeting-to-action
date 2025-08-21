@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../lib/api'
 import { errMsg } from '../lib/errors'
+import ActionItemForm from '../components/ActionItemForm'
 
 export default function MeetingDetail() {
   const { id } = useParams()
@@ -47,17 +48,6 @@ export default function MeetingDetail() {
   }
 
   // ---- Item actions ----
-  const addItem = async () => {
-    const title = prompt('Action item title?'); if (!title) return
-    const due = prompt('Due date (YYYY-MM-DD) or blank')
-    try {
-      await api.post('/action-items', { meeting_id: Number(id), title, due_date: due || null })
-      load()
-    } catch (e) {
-      alert(errMsg(e))
-    }
-  }
-
   const toggle = async (item) => {
     try {
       await api.patch(`/action-items/${item.id}`, { status: item.status === 'open' ? 'done' : 'open' })
@@ -107,9 +97,17 @@ export default function MeetingDetail() {
         <Link to="/meetings" className="text-sm underline">← Back to meetings</Link>
       </div>
 
-      <div className="flex items-center justify-between">
+      {/* Action Items header + inline add form */}
+      <div className="space-y-2">
         <h3 className="text-xl font-semibold">Action Items</h3>
-        <button onClick={addItem}>+ Add</button>
+        <ActionItemForm onAdd={async ({ title, due_date })=>{
+          try {
+            await api.post('/action-items', { meeting_id: Number(id), title, due_date })
+            load()
+          } catch (e) {
+            alert(errMsg(e))
+          }
+        }} />
       </div>
 
       <ul className="divide-y">
