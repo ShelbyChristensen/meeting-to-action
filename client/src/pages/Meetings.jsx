@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import { Link } from 'react-router-dom'
 import { errMsg } from '../lib/errors'
+import MeetingForm from '../components/MeetingForm'
 
 export default function Meetings() {
   const [items, setItems] = useState([])
@@ -19,18 +20,6 @@ export default function Meetings() {
   }
 
   useEffect(() => { load(1, '') }, [])
-
-  const create = async (e) => {
-    e.preventDefault()
-    try {
-      const title = prompt('Meeting title?'); if (!title) return
-      const date = prompt('Date (YYYY-MM-DD)?'); if (!date) return
-      await api.post('/meetings', { title, date })
-      load(page, q)
-    } catch (e) {
-      alert(errMsg(e))
-    }
-  }
 
   const editMeeting = async (m) => {
     const newTitle = prompt('New title?', m.title); if (!newTitle) return
@@ -55,6 +44,8 @@ export default function Meetings() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-4">
+
+      {/* Search row */}
       <div className="flex gap-2">
         <input
           className="flex-1"
@@ -63,8 +54,17 @@ export default function Meetings() {
           onChange={e=>setQ(e.target.value)}
         />
         <button onClick={()=>load(1, q)}>Search</button>
-        <button onClick={create} className="ml-auto">+ New</button>
       </div>
+
+      {/* Inline create meeting form */}
+      <MeetingForm onCreate={async ({ title, date }) => {
+        try {
+          await api.post('/meetings', { title, date })
+          load(1, q)
+        } catch (e) {
+          alert(errMsg(e))
+        }
+      }} />
 
       <ul className="divide-y">
         {items.map(m => (
