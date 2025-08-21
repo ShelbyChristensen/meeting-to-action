@@ -9,6 +9,8 @@ export default function MeetingDetail() {
   const nav = useNavigate()
   const [meeting, setMeeting] = useState(null)
   const [items, setItems] = useState([])
+  const [editingId, setEditingId] = useState(null)
+  const [editDraft, setEditDraft] = useState({ title: '', due_date: '' })
 
   const load = async () => {
     try {
@@ -57,12 +59,19 @@ export default function MeetingDetail() {
     }
   }
 
-  const editItem = async (it) => {
-    const title = prompt('New title:', it.title); if (!title) return
-    const due = prompt('New due date (YYYY-MM-DD) or blank for none:', it.due_date || '')
-    const payload = { title, due_date: due ? due : null }
+  const beginEdit = (it) => {
+    setEditingId(it.id)
+    setEditDraft({ title: it.title, due_date: it.due_date || '' })
+  }
+  const cancelEdit = () => { setEditingId(null); setEditDraft({ title: '', due_date: '' }) }
+
+  const saveEdit = async (id) => {
     try {
-      await api.patch(`/action-items/${it.id}`, payload)
+      await api.patch(`/action-items/${id}`, {
+        title: editDraft.title,
+        due_date: editDraft.due_date || null
+      })
+      cancelEdit()
       load()
     } catch (e) {
       alert(errMsg(e))
@@ -112,17 +121,38 @@ export default function MeetingDetail() {
 
       <ul className="divide-y">
         {items.map(it => (
-          <li key={it.id} className="py-2 flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={it.status === 'done'}
-              onChange={()=>toggle(it)}
-            />
-            <span className="flex-1">
-              {it.title} {it.due_date ? `(due ${it.due_date})` : ''} — {it.status}
-            </span>
-            <button onClick={() => editItem(it)}>Edit</button>
-            <button onClick={() => deleteItem(it)} className="text-red-600">Delete</button>
+          <li key={it.id} className="py-2">
+            {editingId === it.id ? (
+              <div className="flex items-center gap-2">
+                <input
+                  className="flex-1 min-w-[12rem]"
+                  value={editDraft.title}
+                  onChange={e=>setEditDraft(d => ({ ...d, title: e.target.value }))}
+                  placeholder="Title"
+                />
+                <input
+                  className="w-44"
+                  type="date"
+                  value={editDraft.due_date || ''}
+                  onChange={e=>setEditDraft(d => ({ ...d, due_date: e.target.value }))}
+                />
+                <button onClick={()=>saveEdit(it.id)}>Save</button>
+                <button onClick={cancelEdit} className="text-red-600">Cancel</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={it.status === 'done'}
+                  onChange={()=>toggle(it)}
+                />
+                <span className="flex-1">
+                  {it.title} {it.due_date ? `(due ${it.due_date})` : ''} — {it.status}
+                </span>
+                <button onClick={()=>beginEdit(it)}>Edit</button>
+                <button onClick={()=>deleteItem(it)} className="text-red-600">Delete</button>
+              </div>
+            )}
           </li>
         ))}
       </ul>
