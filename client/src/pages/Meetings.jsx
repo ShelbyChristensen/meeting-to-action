@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import { Link } from 'react-router-dom'
 import { errMsg } from '../lib/errors'
-import MeetingForm from '../components/MeetingForm'
+import MeetingForm from '../components/MeetingForm'  
 
 export default function Meetings() {
   const [items, setItems] = useState([])
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [editingId, setEditingId] = useState(null)
-  const [editDraft, setEditDraft] = useState({ title: '', date: '' })
+  const [showCreate, setShowCreate] = useState(false) 
+  const [editingId, setEditingId] = useState(null)     
 
   const load = async (p = 1, query = '') => {
     try {
@@ -23,20 +23,25 @@ export default function Meetings() {
 
   useEffect(() => { load(1, '') }, [])
 
-  const beginEdit = (m) => {
-    setEditingId(m.id)
-    setEditDraft({ title: m.title, date: m.date })
-  }
-  const cancelEdit = () => { setEditingId(null); setEditDraft({ title: '', date: '' }) }
-
-  const saveEdit = async (id) => {
+  const createMeeting = async (payload) => {
     try {
-      if (!editDraft.title || !editDraft.date) return
-      await api.patch(`/meetings/${id}`, { title: editDraft.title, date: editDraft.date })
-      cancelEdit()
+      await api.post('/meetings', payload)
+      setShowCreate(false)
+      load(1, q)
+    } catch (e) {
+      alert(errMsg(e))
+      throw e
+    }
+  }
+
+  const updateMeeting = async (id, payload) => {
+    try {
+      await api.patch(`/meetings/${id}`, payload)
+      setEditingId(null)
       load(page, q)
     } catch (e) {
       alert(errMsg(e))
+      throw e
     }
   }
 
@@ -52,50 +57,37 @@ export default function Meetings() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-4">
-
-      {/* Search row */}
       <div className="flex gap-2">
         <input
-          className="flex-1"
+          className="flex-1 border rounded px-3 py-2"
           placeholder="Search meetings…"
           value={q}
           onChange={e=>setQ(e.target.value)}
         />
-        <button onClick={()=>load(1, q)}>Search</button>
+        <button onClick={()=>load(1, q)} className="px-3 py-2 border rounded">Search</button>
+        <button onClick={()=>setShowCreate(s=>!s)} className="ml-auto px-3 py-2 border rounded">
+          {showCreate ? 'Close' : '+ New'}
+        </button>
       </div>
 
-      {/* Inline create meeting form */}
-      <MeetingForm onCreate={async ({ title, date }) => {
-        try {
-          await api.post('/meetings', { title, date })
-          load(1, q)
-        } catch (e) {
-          alert(errMsg(e))
-        }
-      }} />
+      {showCreate && (
+        <div className="p-3 border rounded">
+          <MeetingForm compact submitLabel="Create" onSubmit={createMeeting} onCancel={()=>setShowCreate(false)} />
+        </div>
+      )}
 
       <ul className="divide-y">
         {items.map(m => (
           <li key={m.id} className="py-3">
             {editingId === m.id ? (
-              <div className="flex items-center gap-2">
-                <input
-                  className="flex-1 min-w-[10rem]"
-                  value={editDraft.title}
-                  onChange={e=>setEditDraft(d => ({ ...d, title: e.target.value }))}
-                  placeholder="Title"
-                />
-                <input
-                  className="w-44"
-                  type="date"
-                  value={editDraft.date}
-                  onChange={e=>setEditDraft(d => ({ ...d, date: e.target.value }))}
-                />
-                <button onClick={()=>saveEdit(m.id)}>Save</button>
-                <button onClick={cancelEdit} className="text-red-600">Cancel</button>
-              </div>
+              <MeetingForm
+                initial={{ title: m.title, date: m.date, attendees: m.attendees, notes: m.notes }}
+                submitLabel="Save"
+                onSubmit={(payload)=>updateMeeting(m.id, payload)}
+                onCancel={()=>setEditingId(null)}
+              />
             ) : (
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between">
                 <span className="truncate">
                   <Link to={`/meetings/${m.id}`} className="font-medium hover:underline">
                     {m.title}
@@ -103,8 +95,8 @@ export default function Meetings() {
                   — {m.date}
                 </span>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={()=>beginEdit(m)}>Edit</button>
-                  <button onClick={()=>deleteMeeting(m)} className="text-red-600">Delete</button>
+                  <button onClick={()=>setEditingId(m.id)} className="px-3 py-2 border rounded">Edit</button>
+                  <button onClick={()=>deleteMeeting(m)} className="px-3 py-2 border rounded text-red-600">Delete</button>
                 </div>
               </div>
             )}
@@ -113,9 +105,9 @@ export default function Meetings() {
       </ul>
 
       <div className="flex items-center gap-2 pt-2">
-        <button disabled={page<=1} onClick={()=>load(page-1,q)}>Prev</button>
+        <button disabled={page<=1} onClick={()=>load(page-1,q)} className="px-3 py-2 border rounded disabled:opacity-50">Prev</button>
         <span>Page {page} / {totalPages}</span>
-        <button disabled={page>=totalPages} onClick={()=>load(page+1,q)}>Next</button>
+        <button disabled={page>=totalPages} onClick={()=>load(page+1,q)} className="px-3 py-2 border rounded disabled:opacity-50">Next</button>
       </div>
     </div>
   )
