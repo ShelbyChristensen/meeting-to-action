@@ -11,22 +11,34 @@ export default function App() {
   return (
     <>
       <Header />
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+      {/* Keep <main> for padding/centering */}
+      <main className="max-w-3xl mx-auto p-6 space-y-6">
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        <Route path="/meetings" element={
-          <ProtectedRoute><Meetings /></ProtectedRoute>
-        } />
-        <Route path="/meetings/:id" element={
-          <ProtectedRoute><MeetingDetail /></ProtectedRoute>
-        } />
-        <Route path="/my-items" element={
-          <ProtectedRoute><MyItems /></ProtectedRoute>
-        } />
+          <Route
+            path="/meetings"
+            element={
+              <ProtectedRoute><Meetings /></ProtectedRoute>
+            }
+          />
+          <Route
+            path="/meetings/:id"
+            element={
+              <ProtectedRoute><MeetingDetail /></ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-items"
+            element={
+              <ProtectedRoute><MyItems /></ProtectedRoute>
+            }
+          />
 
-        <Route path="/" element={<Navigate to="/meetings" replace />} />
-      </Routes>
+          <Route path="/" element={<Navigate to="/meetings" replace />} />
+        </Routes>
+      </main>
     </>
   )
 }
