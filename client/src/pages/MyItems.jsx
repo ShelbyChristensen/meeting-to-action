@@ -22,32 +22,38 @@ export default function MyItems() {
   useEffect(() => { load() }, [])
 
   return (
-    <div style={{maxWidth:800, margin:'20px auto'}}>
-      <h2>My Items</h2>
-      <div style={{display:'flex', gap:8}}>
-        <select value={status} onChange={e=>setStatus(e.target.value)}>
+    <div className="max-w-3xl mx-auto p-6">
+      <h2 className="text-2xl font-semibold mb-4">My Items</h2>
+
+      <div className="flex gap-2 mb-4">
+        <select
+          value={status}
+          onChange={e=>setStatus(e.target.value)}
+          className="min-w-[8rem]"
+        >
           <option value="">All</option>
           <option value="open">Open</option>
           <option value="done">Done</option>
         </select>
+
         <input
           placeholder="Due before (YYYY-MM-DD)"
           value={dueBefore}
           onChange={e=>setDueBefore(e.target.value)}
+          className="flex-1"
         />
+
         <button onClick={load}>Apply</button>
       </div>
 
-      <ul>
+      <ul className="divide-y">
         {items.map(it => (
-          <li
-            key={it.id}
-            style={{padding:'6px 0', borderBottom:'1px solid #eee'}}
-          >
-            #{it.id} — {it.title} — {it.status}{' '}
-            {it.due_date ? `(due ${it.due_date})` : ''}
+          <li key={it.id} className="py-2">
+            <span>
+              #{it.id} — {it.title} — {it.status}{' '}
+              {it.due_date ? `(due ${it.due_date})` : ''}
+            </span>
 
-            
             <button
               onClick={async () => {
                 const title = prompt('New title:', it.title); if (!title) return
@@ -62,12 +68,11 @@ export default function MyItems() {
                   alert(errMsg(e))
                 }
               }}
-              style={{ marginLeft: 8 }}
+              className="ml-2"
             >
               Edit
             </button>
 
-            
             <button
               onClick={async () => {
                 if (!confirm('Delete this item?')) return
@@ -78,7 +83,7 @@ export default function MyItems() {
                   alert(errMsg(e))
                 }
               }}
-              style={{ color: 'red', marginLeft: 8 }}
+              className="ml-2 text-red-600"
             >
               Delete
             </button>
