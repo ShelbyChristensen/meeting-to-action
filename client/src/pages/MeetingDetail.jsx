@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../lib/api'
 import { errMsg } from '../lib/errors'
 
@@ -22,7 +22,7 @@ export default function MeetingDetail() {
 
   useEffect(() => { load() }, [id])
 
-  
+  // ---- Meeting actions ----
   const editMeeting = async () => {
     const title = prompt('Title:', meeting?.title || '')
     if (!title) return
@@ -46,7 +46,7 @@ export default function MeetingDetail() {
     }
   }
 
-
+  // ---- Item actions ----
   const addItem = async () => {
     const title = prompt('Action item title?'); if (!title) return
     const due = prompt('Due date (YYYY-MM-DD) or blank')
@@ -89,30 +89,42 @@ export default function MeetingDetail() {
     }
   }
 
-  if (!meeting) return <div style={{padding:16}}>Loading…</div>
+  if (!meeting) return <div className="max-w-3xl mx-auto p-6">Loading…</div>
 
   return (
-    <div style={{maxWidth:800, margin:'20px auto'}}>
-      <div style={{display:'flex', alignItems:'center', gap:8}}>
-        <h2 style={{marginRight:'auto'}}>{meeting.title} — {meeting.date}</h2>
+    <div className="max-w-3xl mx-auto p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <h2 className="text-2xl font-semibold mr-auto">
+          {meeting.title} — {meeting.date}
+        </h2>
         <button onClick={editMeeting}>Edit</button>
-        <button onClick={deleteMeeting} style={{color:'red'}}>Delete</button>
+        <button onClick={deleteMeeting} className="text-red-600">Delete</button>
       </div>
 
-      <p><strong>Attendees:</strong> {meeting.attendees || '-'}</p>
-      <p><strong>Notes:</strong> {meeting.notes || '-'}</p>
+      <div className="space-y-1">
+        <p><span className="font-medium">Attendees:</span> {meeting.attendees || '-'}</p>
+        <p><span className="font-medium">Notes:</span> {meeting.notes || '-'}</p>
+        <Link to="/meetings" className="text-sm underline">← Back to meetings</Link>
+      </div>
 
-      <h3 style={{marginTop:20}}>Action Items</h3>
-      <button onClick={addItem}>+ Add</button>
-      <ul>
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold">Action Items</h3>
+        <button onClick={addItem}>+ Add</button>
+      </div>
+
+      <ul className="divide-y">
         {items.map(it => (
-          <li key={it.id} style={{padding:'6px 0', borderBottom:'1px solid #eee', display:'flex', alignItems:'center', gap:8}}>
-            <input type="checkbox" checked={it.status === 'done'} onChange={()=>toggle(it)} />
-            <span style={{flex:1}}>
+          <li key={it.id} className="py-2 flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={it.status === 'done'}
+              onChange={()=>toggle(it)}
+            />
+            <span className="flex-1">
               {it.title} {it.due_date ? `(due ${it.due_date})` : ''} — {it.status}
             </span>
             <button onClick={() => editItem(it)}>Edit</button>
-            <button onClick={() => deleteItem(it)} style={{color:'red'}}>Delete</button>
+            <button onClick={() => deleteItem(it)} className="text-red-600">Delete</button>
           </li>
         ))}
       </ul>
