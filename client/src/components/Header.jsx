@@ -8,8 +8,11 @@ export default function Header() {
       <Link to="/meetings"><strong>Meeting-to-Action</strong></Link>
       {user && (
         <>
+          <Link to="/dashboard">Dashboard</Link>   
           <Link to="/meetings">Meetings</Link>
           <Link to="/my-items">My Items</Link>
+          <Link to="/calendar">Calendar</Link>
+
           <span style={{marginLeft:'auto'}}>{user.email}</span>
           <button onClick={logout}>Logout</button>
         </>

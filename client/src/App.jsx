@@ -6,12 +6,14 @@ import Register from './pages/Register'
 import Meetings from './pages/Meetings'
 import MeetingDetail from './pages/MeetingDetail'
 import MyItems from './pages/MyItems'
+import Dashboard from './pages/Dashboard'
+import CalendarView from './pages/CalendarView'
 
 export default function App() {
   return (
     <>
       <Header />
-      {/* Keep <main> for padding/centering */}
+      
       <main className="max-w-3xl mx-auto p-6 space-y-6">
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -22,6 +24,18 @@ export default function App() {
             element={
               <ProtectedRoute><Meetings /></ProtectedRoute>
             }
+          />
+
+          <Route 
+          path="/calendar" 
+          element={
+              <ProtectedRoute><CalendarView /></ProtectedRoute>} 
+          />
+
+          <Route
+           path="/dashboard" 
+           element={
+              <ProtectedRoute><Dashboard /></ProtectedRoute>} 
           />
           <Route
             path="/meetings/:id"
