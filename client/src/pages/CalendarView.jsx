@@ -8,7 +8,6 @@ import Spinner from '../components/Spinner'
 import Alert from '../components/Alert'
 
 function ymd(d) {
-  // return YYYY-MM-DD for any Date
   const pad = (n) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
@@ -16,12 +15,11 @@ function ymd(d) {
 export default function CalendarView() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [meetings, setMeetings] = useState([])            // {id,title,date,...}
-  const [items, setItems] = useState([])                  // action items
-  const [value, setValue] = useState(new Date())          // selected date
+  const [meetings, setMeetings] = useState([])            
+  const [items, setItems] = useState([])                  
+  const [value, setValue] = useState(new Date())          
   const navigate = useNavigate()
 
-  // fetch meetings + action items (first page up to 200 results)
   const load = async () => {
     setLoading(true); setError('')
     try {
@@ -41,7 +39,6 @@ export default function CalendarView() {
 
   useEffect(() => { load() }, [])
 
-  // Map dates → meetings / due items
   const meetingByDate = useMemo(() => {
     const map = {}
     for (const m of meetings) {
@@ -63,7 +60,6 @@ export default function CalendarView() {
     return map
   }, [items])
 
-  // Calendar tile content: dots if anything is scheduled/due
   const tileContent = ({ date, view }) => {
     if (view !== 'month') return null
     const key = ymd(date)
@@ -73,7 +69,7 @@ export default function CalendarView() {
 
     return (
       <div className="mt-1 flex gap-1 justify-center">
-        {hasMeeting && <span className="inline-block w-2 h-2 rounded-full bg-blue-600" />}
+        {hasMeeting && <span className="inline-block w-2 h-2 rounded-full bg-[#0091af]" />}
         {hasDue && <span className="inline-block w-2 h-2 rounded-full bg-amber-500" />}
       </div>
     )
@@ -92,7 +88,6 @@ export default function CalendarView() {
         <Spinner label="Loading calendar…" />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Calendar */}
           <div className="bg-white p-3 rounded border">
             <Calendar
               onChange={setValue}
@@ -104,7 +99,7 @@ export default function CalendarView() {
             />
             <div className="text-xs text-gray-600 mt-2 flex gap-3">
               <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-blue-600 inline-block" /> Meeting
+                <span className="w-2 h-2 rounded-full bg-[#0091af] inline-block" /> Meeting
               </span>
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> Item due
@@ -112,7 +107,6 @@ export default function CalendarView() {
             </div>
           </div>
 
-          {/* Day detail */}
           <div className="space-y-4">
             <div className="border rounded p-3 bg-white">
               <h3 className="font-medium mb-2">Meetings on {selectedKey}</h3>
@@ -124,7 +118,7 @@ export default function CalendarView() {
                     <li key={m.id} className="flex items-center justify-between">
                       <span className="truncate">{m.title}</span>
                       <button
-                        className="text-blue-600 hover:underline ml-2"
+                        className="text-[#0091af] hover:underline ml-2"
                         onClick={() => navigate(`/meetings/${m.id}`)}
                       >
                         Open

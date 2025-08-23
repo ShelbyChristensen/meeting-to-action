@@ -135,3 +135,6 @@ DELETE /action-items/:id (JWT)
 2. Build command: npm run build
 
 3. Output dir: dist
+
+## OpenAI 
+-Integrated to auto suggest action items

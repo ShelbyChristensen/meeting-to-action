@@ -8,6 +8,7 @@ from flask_cors import CORS
 from .errors import register_error_handlers
 import os
 
+
 db = SQLAlchemy()
 ma = Marshmallow()
 bcrypt = Bcrypt()
@@ -31,11 +32,12 @@ def create_app():
     from app.auth import auth_bp
     from app.meetings import meetings_bp
     from app.action_items import items_bp
+    from app.ai import ai_bp   
+
     app.register_blueprint(routes.bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(meetings_bp)
     app.register_blueprint(items_bp)
-
-    register_error_handlers(app)
+    app.register_blueprint(ai_bp)  
 
     return app

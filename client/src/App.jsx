@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import Header from './components/Header'
 import ProtectedRoute from './components/ProtectedRoute'
+import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Meetings from './pages/Meetings'
@@ -13,46 +14,45 @@ export default function App() {
   return (
     <>
       <Header />
-      
-      <main className="max-w-3xl mx-auto p-6 space-y-6">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
 
-          <Route
-            path="/meetings"
-            element={
-              <ProtectedRoute><Meetings /></ProtectedRoute>
-            }
-          />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-          <Route 
-          path="/calendar" 
+        <Route
+          path="/meetings"
           element={
-              <ProtectedRoute><CalendarView /></ProtectedRoute>} 
-          />
+            <ProtectedRoute><Meetings /></ProtectedRoute>
+          }
+        />
+        <Route
+          path="/meetings/:id"
+          element={
+            <ProtectedRoute><MeetingDetail /></ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-items"
+          element={
+            <ProtectedRoute><MyItems /></ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute><Dashboard /></ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calendar"
+          element={
+            <ProtectedRoute><CalendarView /></ProtectedRoute>
+          }
+        />
 
-          <Route
-           path="/dashboard" 
-           element={
-              <ProtectedRoute><Dashboard /></ProtectedRoute>} 
-          />
-          <Route
-            path="/meetings/:id"
-            element={
-              <ProtectedRoute><MeetingDetail /></ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-items"
-            element={
-              <ProtectedRoute><MyItems /></ProtectedRoute>
-            }
-          />
-
-          <Route path="/" element={<Navigate to="/meetings" replace />} />
-        </Routes>
-      </main>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
   )
 }

@@ -1,0 +1,151 @@
+{
+  "info": {
+    "name": "Meeting-to-Action Tracker",
+    "_postman_id": "2c7df3f8-8b7e-4b57-9cde-collection",
+    "description": "Local API collection for auth, meetings, and action items.\nSet `base_url` and `token` in the collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:5000" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth","register"] },
+            "body": { "mode": "raw", "raw": "{\"email\":\"test@example.com\",\"password\":\"secret123\"}" }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth","login"] },
+            "body": { "mode": "raw", "raw": "{\"email\":\"test@example.com\",\"password\":\"secret123\"}" }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": { "raw": "{{base_url}}/auth/me", "host": ["{{base_url}}"], "path": ["auth","me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Meetings",
+      "item": [
+        {
+          "name": "List meetings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{base_url}}/meetings?page=1&per_page=10&q=",
+              "host": ["{{base_url}}"], "path": ["meetings"],
+              "query": [{ "key": "page", "value": "1" }, { "key": "per_page", "value": "10" }, { "key": "q", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Create meeting",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}"},
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/meetings", "host": ["{{base_url}}"], "path": ["meetings"] },
+            "body": { "mode": "raw", "raw": "{\"title\":\"Project Kickoff\",\"date\":\"2025-08-14\",\"attendees\":\"Alice, Bob\",\"notes\":\"Initial planning\"}" }
+          }
+        },
+        {
+          "name": "Get meeting by id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": { "raw": "{{base_url}}/meetings/1", "host": ["{{base_url}}"], "path": ["meetings","1"] }
+          }
+        },
+        {
+          "name": "Update meeting",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}"},
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/meetings/1", "host": ["{{base_url}}"], "path": ["meetings","1"] },
+            "body": { "mode": "raw", "raw": "{\"title\":\"Kickoff (updated)\",\"date\":\"2025-08-15\"}" }
+          }
+        },
+        {
+          "name": "Delete meeting",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": { "raw": "{{base_url}}/meetings/1", "host": ["{{base_url}}"], "path": ["meetings","1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Action Items",
+      "item": [
+        {
+          "name": "List my items (filters)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": {
+              "raw": "{{base_url}}/action-items?status=open&due_before=",
+              "host": ["{{base_url}}"], "path": ["action-items"],
+              "query": [{ "key": "status", "value": "open" }, { "key": "due_before", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Create item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}"},
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/action-items", "host": ["{{base_url}}"], "path": ["action-items"] },
+            "body": { "mode": "raw", "raw": "{\"meeting_id\":1,\"title\":\"Send proposal\",\"due_date\":\"2025-08-20\",\"status\":\"open\",\"assignee\":\"Alice\"}" }
+          }
+        },
+        {
+          "name": "Update item",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}"},
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/action-items/1", "host": ["{{base_url}}"], "path": ["action-items","1"] },
+            "body": { "mode": "raw", "raw": "{\"title\":\"Send proposal (v2)\",\"due_date\":\"2025-08-22\",\"status\":\"done\"}" }
+          }
+        },
+        {
+          "name": "Delete item",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}"}],
+            "url": { "raw": "{{base_url}}/action-items/1", "host": ["{{base_url}}"], "path": ["action-items","1"] }
+          }
+        }
+      ]
+    }
+  ]
+}
