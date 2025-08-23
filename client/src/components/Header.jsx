@@ -9,7 +9,7 @@ export default function Header() {
 
   return (
     <header className="flex items-center gap-6 px-6 py-4 border-b">
-      {/* Logo → Home */}
+     
       <Link to="/" className="flex items-center gap-4">
         <img
           src="/logo.png"
@@ -20,7 +20,7 @@ export default function Header() {
 
       {user && (
         <>
-          {/* Main nav */}
+          
           <nav className="flex items-center gap-2">
             <NavLink to="/dashboard" className={navCls}>Dashboard</NavLink>
             <NavLink to="/meetings" className={navCls}>Meetings</NavLink>
@@ -28,7 +28,7 @@ export default function Header() {
             <NavLink to="/calendar" className={navCls}>Calendar</NavLink>
           </nav>
 
-          {/* User area */}
+          
           <div className="ml-auto flex items-center gap-3">
             <span className="text-sm text-gray-600">{user.email}</span>
             <button onClick={logout} className="px-3 py-2 rounded border hover:bg-gray-50">

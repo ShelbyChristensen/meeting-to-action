@@ -9,12 +9,11 @@ export default function Meetings() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  // inline add form state
+  
   const [showAdd, setShowAdd] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newDate, setNewDate] = useState('')
 
-  // inline edit per-row (track id being edited)
   const [editId, setEditId] = useState(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDate, setEditDate] = useState('')
@@ -30,7 +29,7 @@ export default function Meetings() {
 
   useEffect(() => { load(1, '') }, [])
 
-  // Create meeting (inline form)
+  
   const create = async (e) => {
     e.preventDefault()
     try {
@@ -44,7 +43,7 @@ export default function Meetings() {
     }
   }
 
-  // Edit meeting
+  
   const startEdit = (m) => {
     setEditId(m.id)
     setEditTitle(m.title)
@@ -67,7 +66,7 @@ export default function Meetings() {
     }
   }
 
-  // Delete meeting
+  
   const deleteMeeting = async (m) => {
     if (!confirm('Delete this meeting?')) return
     try {
@@ -95,7 +94,7 @@ export default function Meetings() {
         )}
       </div>
 
-      {/* Inline Add Form */}
+      
       {showAdd && (
         <form onSubmit={create} className="border rounded p-3 space-y-3">
           <div className="space-y-1">

@@ -9,29 +9,29 @@ import Empty from '../components/Empty'
 export default function MeetingDetail() {
   const { id } = useParams()
 
-  // meeting & items
+  
   const [meeting, setMeeting] = useState(null)
   const [items, setItems] = useState([])
 
-  // page state
+ 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // inline edit (title/date)
+  
   const [editing, setEditing] = useState(false)
   const [editTitle, setEditTitle] = useState('')
   const [editDate, setEditDate] = useState('')
 
-  // notes
+  
   const [notesText, setNotesText] = useState('')
 
-  // AI suggestions
+  
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState('')
-  const [aiItems, setAiItems] = useState([])       // array of strings
-  const [aiSelected, setAiSelected] = useState({}) // { index: boolean }
+  const [aiItems, setAiItems] = useState([])       
+  const [aiSelected, setAiSelected] = useState({}) 
 
-  // add item form
+  
   const [showAdd, setShowAdd] = useState(false)
   const [title, setTitle] = useState('')
   const [due, setDue] = useState('')
@@ -59,7 +59,7 @@ export default function MeetingDetail() {
 
   useEffect(() => { load() }, [id])
 
-  // --- inline edit save ---
+  
   const saveHeader = async (e) => {
     e.preventDefault()
     try {
@@ -72,7 +72,7 @@ export default function MeetingDetail() {
     }
   }
 
-  // --- notes actions ---
+ 
   const saveNotes = async () => {
     try {
       await api.patch(`/meetings/${id}`, { notes: notesText })
@@ -121,7 +121,7 @@ export default function MeetingDetail() {
     }
   }
 
-  // --- items actions ---
+  
   const submitNewItem = async (e) => {
     e.preventDefault()
     try {
@@ -175,7 +175,7 @@ export default function MeetingDetail() {
         <Empty title="Meeting not found" subtitle="Try going back to your meetings list." />
       ) : (
         <>
-          {/* Header: inline edit */}
+          
           <div className="border-b pb-3 mb-3">
             {editing ? (
               <form onSubmit={saveHeader} className="space-y-2">
@@ -222,7 +222,7 @@ export default function MeetingDetail() {
             )}
           </div>
 
-          {/* Notes + AI */}
+          
           <div className="space-y-2">
             <label className="block text-sm font-medium">Notes</label>
             <textarea
@@ -293,7 +293,7 @@ export default function MeetingDetail() {
             )}
           </div>
 
-          {/* Action Items */}
+          
           <div>
             <h3 className="font-semibold mb-2">Action Items</h3>
 
