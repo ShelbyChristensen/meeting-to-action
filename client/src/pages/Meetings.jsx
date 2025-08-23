@@ -2,15 +2,22 @@ import { useEffect, useState } from 'react'
 import api from '../lib/api'
 import { Link } from 'react-router-dom'
 import { errMsg } from '../lib/errors'
-import MeetingForm from '../components/MeetingForm'  
 
 export default function Meetings() {
   const [items, setItems] = useState([])
   const [q, setQ] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [showCreate, setShowCreate] = useState(false) 
-  const [editingId, setEditingId] = useState(null)     
+
+  // inline add form state
+  const [showAdd, setShowAdd] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newDate, setNewDate] = useState('')
+
+  // inline edit per-row (track id being edited)
+  const [editId, setEditId] = useState(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDate, setEditDate] = useState('')
 
   const load = async (p = 1, query = '') => {
     try {
@@ -23,28 +30,44 @@ export default function Meetings() {
 
   useEffect(() => { load(1, '') }, [])
 
-  const createMeeting = async (payload) => {
+  // Create meeting (inline form)
+  const create = async (e) => {
+    e.preventDefault()
     try {
-      await api.post('/meetings', payload)
-      setShowCreate(false)
-      load(1, q)
-    } catch (e) {
-      alert(errMsg(e))
-      throw e
-    }
-  }
-
-  const updateMeeting = async (id, payload) => {
-    try {
-      await api.patch(`/meetings/${id}`, payload)
-      setEditingId(null)
+      if (!newTitle.trim()) return alert('Title is required')
+      if (!newDate.trim()) return alert('Date is required (YYYY-MM-DD)')
+      await api.post('/meetings', { title: newTitle.trim(), date: newDate.trim() })
+      setNewTitle(''); setNewDate(''); setShowAdd(false)
       load(page, q)
     } catch (e) {
       alert(errMsg(e))
-      throw e
     }
   }
 
+  // Edit meeting
+  const startEdit = (m) => {
+    setEditId(m.id)
+    setEditTitle(m.title)
+    setEditDate(m.date)
+  }
+  const cancelEdit = () => {
+    setEditId(null)
+    setEditTitle('')
+    setEditDate('')
+  }
+  const saveEdit = async (m) => {
+    try {
+      if (!editTitle.trim()) return alert('Title is required')
+      if (!editDate.trim()) return alert('Date is required (YYYY-MM-DD)')
+      await api.patch(`/meetings/${m.id}`, { title: editTitle.trim(), date: editDate.trim() })
+      cancelEdit()
+      load(page, q)
+    } catch (e) {
+      alert(errMsg(e))
+    }
+  }
+
+  // Delete meeting
   const deleteMeeting = async (m) => {
     if (!confirm('Delete this meeting?')) return
     try {
@@ -64,39 +87,74 @@ export default function Meetings() {
           value={q}
           onChange={e=>setQ(e.target.value)}
         />
-        <button onClick={()=>load(1, q)} className="px-3 py-2 border rounded">Search</button>
-        <button onClick={()=>setShowCreate(s=>!s)} className="ml-auto px-3 py-2 border rounded">
-          {showCreate ? 'Close' : '+ New'}
-        </button>
+        <button className="px-3 py-2 border rounded" onClick={()=>load(1, q)}>Search</button>
+        {!showAdd ? (
+          <button className="px-3 py-2 border rounded ml-auto" onClick={()=>setShowAdd(true)}>+ New</button>
+        ) : (
+          <button className="px-3 py-2 border rounded ml-auto" onClick={()=>{ setShowAdd(false); setNewTitle(''); setNewDate(''); }}>Cancel</button>
+        )}
       </div>
 
-      {showCreate && (
-        <div className="p-3 border rounded">
-          <MeetingForm compact submitLabel="Create" onSubmit={createMeeting} onCancel={()=>setShowCreate(false)} />
-        </div>
+      {/* Inline Add Form */}
+      {showAdd && (
+        <form onSubmit={create} className="border rounded p-3 space-y-3">
+          <div className="space-y-1">
+            <label className="block text-sm">Title *</label>
+            <input
+              className="w-full border rounded px-3 py-2"
+              value={newTitle}
+              onChange={e=>setNewTitle(e.target.value)}
+              placeholder="e.g., Project Kickoff"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm">Date (YYYY-MM-DD) *</label>
+            <input
+              className="w-full border rounded px-3 py-2"
+              value={newDate}
+              onChange={e=>setNewDate(e.target.value)}
+              placeholder="2025-09-01"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button type="button" className="px-3 py-2 border rounded" onClick={()=>{ setShowAdd(false); setNewTitle(''); setNewDate(''); }}>Cancel</button>
+            <button type="submit" className="px-3 py-2 border rounded">Create</button>
+          </div>
+        </form>
       )}
 
       <ul className="divide-y">
         {items.map(m => (
           <li key={m.id} className="py-3">
-            {editingId === m.id ? (
-              <MeetingForm
-                initial={{ title: m.title, date: m.date, attendees: m.attendees, notes: m.notes }}
-                submitLabel="Save"
-                onSubmit={(payload)=>updateMeeting(m.id, payload)}
-                onCancel={()=>setEditingId(null)}
-              />
+            {editId === m.id ? (
+              <div className="space-y-2">
+                <input
+                  className="w-full border rounded px-3 py-2"
+                  value={editTitle}
+                  onChange={(e)=>setEditTitle(e.target.value)}
+                />
+                <input
+                  className="w-full border rounded px-3 py-2"
+                  value={editDate}
+                  onChange={(e)=>setEditDate(e.target.value)}
+                  placeholder="YYYY-MM-DD"
+                />
+                <div className="flex gap-2 justify-end">
+                  <button className="px-3 py-2 border rounded" onClick={()=>saveEdit(m)}>Save</button>
+                  <button className="px-3 py-2 border rounded" onClick={cancelEdit}>Cancel</button>
+                </div>
+              </div>
             ) : (
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-3">
                 <span className="truncate">
                   <Link to={`/meetings/${m.id}`} className="font-medium hover:underline">
                     {m.title}
                   </Link>{' '}
                   — {m.date}
                 </span>
-                <div className="flex items-center gap-2 shrink-0">
-                  <button onClick={()=>setEditingId(m.id)} className="px-3 py-2 border rounded">Edit</button>
-                  <button onClick={()=>deleteMeeting(m)} className="px-3 py-2 border rounded text-red-600">Delete</button>
+                <div className="shrink-0 flex gap-2">
+                  <button className="px-3 py-2 border rounded" onClick={()=>startEdit(m)}>Edit</button>
+                  <button className="px-3 py-2 border rounded text-red-600" onClick={()=>deleteMeeting(m)}>Delete</button>
                 </div>
               </div>
             )}
@@ -105,9 +163,9 @@ export default function Meetings() {
       </ul>
 
       <div className="flex items-center gap-2 pt-2">
-        <button disabled={page<=1} onClick={()=>load(page-1,q)} className="px-3 py-2 border rounded disabled:opacity-50">Prev</button>
+        <button className="px-3 py-2 border rounded" disabled={page<=1} onClick={()=>load(page-1,q)}>Prev</button>
         <span>Page {page} / {totalPages}</span>
-        <button disabled={page>=totalPages} onClick={()=>load(page+1,q)} className="px-3 py-2 border rounded disabled:opacity-50">Next</button>
+        <button className="px-3 py-2 border rounded" disabled={page>=totalPages} onClick={()=>load(page+1,q)}>Next</button>
       </div>
     </div>
   )
